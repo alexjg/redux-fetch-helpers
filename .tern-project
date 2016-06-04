@@ -1,0 +1,9 @@
+{
+    "ecmaVersions": {
+        "ecmaVersion5": false,
+        "ecmaVersion6": true
+    },
+    "plugins": {
+        "es_modules": {}
+    }
+}
