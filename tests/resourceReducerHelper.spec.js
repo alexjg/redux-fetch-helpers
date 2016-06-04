@@ -1,14 +1,14 @@
 import { Map, fromJS } from "immutable"
-import { fetchReducer } from "../src/fetchReducerHelpers"
+import { resourceReducer } from "../src/fetchReducerHelpers"
 
-describe("The fetch reducer helper", () => {
+describe("The resource reducer helper", () => {
     const detailActionType = "SOME_DETAIL"
     const collectionActionType = "SOME_COLLECTION"
     const itemExtractor = (item) => ({id: item.id, data: item})
     const itemsExtractor = (payload) => {
         return payload.items
     }
-    const reducer = fetchReducer({
+    const reducer = resourceReducer({
         detailActionType,
         collectionActionType,
         itemsExtractor,
@@ -145,7 +145,7 @@ describe("The fetch reducer helper", () => {
             })
             const action = {
                 type: detailActionType,
-                meta: {sequence: "COMPLETE"},
+                meta: {sequence: "COMPLETE", itemId: "123"},
                 payload: {id: "123", some: "otherdata"},
             }
             expect(reducer(initialState, action)).to.equal(fromJS({
