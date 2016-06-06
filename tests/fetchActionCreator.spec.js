@@ -1,5 +1,6 @@
 import fetchMock from "fetch-mock"
 import fetchActionCreator from "../src/fetchActionCreator"
+import sinon from "sinon"
 
 describe("The fetchActionCreator helper",  () => {
     let dispatchedPromiseOne
@@ -35,7 +36,7 @@ describe("The fetchActionCreator helper",  () => {
                 body: JSON.stringify({some: "data"})
             },
             actionType: "SOME_ACTION_TYPE",
-            errorConfig: {
+            responseConfig: {
                 401: new Error("Unauthorized"),
                 other: new Error("Other!"),
             }
@@ -57,33 +58,46 @@ describe("The fetchActionCreator helper",  () => {
         })
     })
 
-    it("should dispatch a success action with the JSON on a 200 response", () => {
-        fetchMock.mock("http://testserver/someurl/", "POST", {
-            status: 200,
-            body: {"some": "value"},
-            headers: {"Content-Type": "application/json"},
+    describe("When the action complets succesfully", () => {
+        let createResponsePayload = sinon.stub().returns("something")
+        beforeEach(() => {
+            createResponsePayload = sinon.stub().returns(Promise.resolve("something"))
+            actionCreator = fetchActionCreator({
+                url: "http://testserver/someurl/",
+                fetchOptions: {method: "POST"},
+                actionType: "SOME_ACTION_TYPE",
+                createResponsePayload,
+            })
+            fetchMock.mock("http://testserver/someurl/", "POST", {
+                status: 200,
+                body: {"some": "value"},
+                headers: {"Content-Type": "application/json"},
+            })
         })
-        actionCreator(dispatch)
-        return expect(dispatchedPromiseTwo).to.eventually.become({
-            type: "SOME_ACTION_TYPE",
-            meta: {sequence: "COMPLETE"},
-            payload: {"some": "value"},
-        })
-    })
 
-    it("should dispatch an error when the status is 401", () => {
-        fetchMock.mock("http://testserver/someurl/", "POST", {
-            status: 401,
-            body: "Unauthorized",
-            sendAsJson: false,
+        it("when the createResponsePayload promise resolves it should return the result in the action", () => {
+            const err = new Error("argh!")
+            createResponsePayload.returns(Promise.resolve(err))
+            actionCreator(dispatch)
+            return dispatchedPromiseTwo.then(val => {
+                expect(val.payload).to.equal(err)
+                expect(val.error).to.be.true
+                expect(createResponsePayload).to.have.been.calledWithMatch(
+                    sinon.match.has("status", 200)
+                )
+            })
         })
-        actionCreator(dispatch)
-        return expect(dispatchedPromiseTwo).to.become({
-            type: "SOME_ACTION_TYPE",
-            meta: {sequence: "COMPLETE"},
-            payload: new Error("Unauthorized"),
-            error: true,
+
+        it("when the createResponsePaylod promise resolves with an error it should return the error in the action", () => {
+            actionCreator(dispatch)
+            return dispatchedPromiseTwo.then(val => {
+                expect(val.payload).to.equal("something")
+                expect(createResponsePayload).to.have.been.calledWithMatch(
+                    sinon.match.has("status", 200)
+                )
+            })
         })
+
     })
 
     it("should return an error when the fetch throws an error", () => {

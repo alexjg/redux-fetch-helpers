@@ -1,10 +1,22 @@
 import { createAction } from "redux-actions"
+import jsonResponseHandler from "./jsonResponseHandler"
 
 function id(val) {return val}
 
-export default function fetchActionCreator({url, fetchOptions, actionType, metaTransform}) {
+
+export default function fetchActionCreator({
+    url,
+    fetchOptions,
+    actionType,
+    metaTransform,
+    responseConfig,
+    createResponsePayload,
+}) {
     if (!metaTransform) {
         metaTransform = id
+    }
+    if (!createResponsePayload) {
+        createResponsePayload = jsonResponseHandler(responseConfig)
     }
     return dispatch => {
         dispatch({
@@ -14,20 +26,17 @@ export default function fetchActionCreator({url, fetchOptions, actionType, metaT
         const promise = fetch(url, fetchOptions)
         promise.then(
             result => {
-                if (result.status === 200) {
-                    result.json().then(data => dispatch({
+                createResponsePayload(result).then(payload => {
+                    const action = {
                         type: actionType,
                         meta: metaTransform({sequence: "COMPLETE"}),
-                        payload: data,
-                    }))
-                } else if (result.status === 401) {
-                    dispatch({
-                        type: actionType,
-                        meta: {sequence: "COMPLETE"},
-                        payload: new NotAuthorizedException(),
-                        error: true,
-                    })
-                }
+                        payload: payload,
+                    }
+                    if (payload instanceof Error) {
+                        action.error = true
+                    }
+                    dispatch(action)
+                })
             }
         ).catch(err => {
             dispatch({

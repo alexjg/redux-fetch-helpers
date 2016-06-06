@@ -1,3 +1,3 @@
 export {default as fetchActionCreator } from "./fetchActionCreator"
-export { fetchReducerHelper } from "./fetchReducerHelpers"
+export { fetchReducer, resourceReducer } from "./fetchReducerHelpers"
 
