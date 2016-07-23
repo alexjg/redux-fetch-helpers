@@ -57,5 +57,17 @@ describe("The jsonResponseHandler", () => {
                 return expect(handler(resp)).to.become("|123")
             })
         })
+
+        describe("And there is a function handler", () => {
+            it("should return the result of calling the handler with the raw data", () => {
+                const resp = new Response(
+                    "|123", {
+                    status: 200,
+                    headers: {"Content-Type": "text/html"},
+                })
+                const handler = jsonResponseHandler({200: resp => resp.substring(0, 2)})
+                return expect(handler(resp)).to.become("|1")
+            })
+        })
     })
 })

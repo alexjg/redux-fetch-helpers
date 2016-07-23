@@ -6,12 +6,19 @@ export default function(responseConfig={}) {
                 return Promise.resolve(handler)
             }
         }
-        if (response.headers.get("content-type") === "application/json") {
-            if (handler) {
-                return response.json().then(data => handler(data))
-            }
+
+        const responseIsJson  = (response.headers.get("content-type") === "application/json")
+
+        if (handler) {
+            //we know handler is a function at this point
+            const bodyPromise = responseIsJson ? response.json() : response.text()
+            return bodyPromise.then(data => handler(data))
+        }
+
+        if (responseIsJson) {
             return response.json()
         }
+
         return response.text()
     }
 }
