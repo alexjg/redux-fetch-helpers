@@ -35,16 +35,17 @@ export default function fetchActionCreator({
                     if (payload instanceof Error) {
                         action.error = true
                     }
-                    dispatch(action)
+                    return dispatch(action)
                 })
             }
         ).catch(err => {
-            dispatch({
+            return dispatch({
                 type: actionType,
                 meta: metaTransform({sequence: "COMPLETE"}),
                 payload: err,
                 error: true,
             })
+            throw err
         })
     }
 }
