@@ -24,7 +24,7 @@ export default function fetchActionCreator({
             meta: metaTransform({sequence: "BEGIN"}),
         })
         const promise = fetch(url, fetchOptions)
-        promise.then(
+        return promise.then(
             result => {
                 createResponsePayload(result).then(payload => {
                     const action = {
