@@ -26,7 +26,7 @@ export default function fetchActionCreator({
         const promise = fetch(url, fetchOptions)
         return promise.then(
             result => {
-                createResponsePayload(result).then(payload => {
+                return createResponsePayload(result).then(payload => {
                     const action = {
                         type: actionType,
                         meta: metaTransform({sequence: "COMPLETE"}),
@@ -35,11 +35,12 @@ export default function fetchActionCreator({
                     if (payload instanceof Error) {
                         action.error = true
                     }
-                    return dispatch(action)
+                    dispatch(action)
+                    return payload
                 })
             }
         ).catch(err => {
-            return dispatch({
+            dispatch({
                 type: actionType,
                 meta: metaTransform({sequence: "COMPLETE"}),
                 payload: err,
