@@ -6,8 +6,8 @@ export default function(responseConfig={}) {
                 return Promise.resolve(handler)
             }
         }
-
-        const responseIsJson  = (response.headers.get("content-type") === "application/json")
+        const contentType = response.headers.get("content-type")
+        const responseIsJson  = (contentType != null && contentType.includes("application/json"))
 
         if (handler) {
             //we know handler is a function at this point
